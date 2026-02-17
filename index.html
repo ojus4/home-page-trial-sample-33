@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLVO | Career OS 4.0</title>
+    
+    <!-- 1. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. React Engine -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- 3. Babel Translator -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Fonts: Inter (UI) & Caveat (Handwriting) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-hand { font-family: 'Caveat', cursive; }
+        
+        html { scroll-behavior: smooth; }
+        
+        /* Hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scribble Animation */
+        .draw-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 2s ease-out forwards;
+        }
+        
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Gentle float for doodles */
+        .float { animation: floating 3s ease-in-out infinite; }
+        @keyframes floating {
+            0% { transform: translate(0, 0px); }
+            50% { transform: translate(0, 10px); }
+            100% { transform: translate(0, -0px); }
+        }
+    </style>
+</head>
+<body class="bg-white text-[#1D1D1F] font-sans selection:bg-black selection:text-white overflow-x-hidden">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- HAND DRAWN DOODLES (The "Notion" Soul) ---
+        // These are custom SVG paths that look like sketches
+        
+        const ArrowDoodle = ({ className }) => (
+            <svg className={className} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path className="draw-path" d="M10,90 Q50,10 90,50" />
+                <path className="draw-path" d="M90,50 L80,45" style={{animationDelay: '0.5s'}} />
+                <path className="draw-path" d="M90,50 L85,60" style={{animationDelay: '0.5s'}} />
+            </svg>
+        );
+
+        const CircleDoodle = ({ className }) => (
+            <svg className={className} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path className="draw-path" d="M50,10 C80,10 90,30 90,50 C90,80 70,90 50,90 C30,90 10,70 10,50 C10,30 20,10 50,10 M45,12 C20,15 15,35 15,50" />
+            </svg>
+        );
+
+        const StarDoodle = ({ className }) => (
+            <svg className={className} viewBox="0 0 50 50" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path className="draw-path" d="M25,2 L28,18 L45,18 L32,28 L36,45 L25,35 L14,45 L18,28 L5,18 L22,18 Z" />
+            </svg>
+        );
+
+        const UnderlineDoodle = ({ className }) => (
+            <svg className={className} viewBox="0 0 200 20" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path className="draw-path" d="M5,10 Q50,15 100,5 T195,10" />
+            </svg>
+        );
+
+        const StickFigureWorking = ({ className }) => (
+            <svg className={className} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                {/* Head */}
+                <circle cx="50" cy="30" r="10" className="draw-path" />
+                {/* Body */}
+                <path d="M50,40 L50,70" className="draw-path" />
+                {/* Arms typing */}
+                <path d="M50,50 L30,60 L40,65" className="draw-path" />
+                <path d="M50,50 L70,60 L60,65" className="draw-path" />
+                {/* Legs sitting */}
+                <path d="M50,70 L30,80 L30,95" className="draw-path" />
+                <path d="M50,70 L70,80 L70,95" className="draw-path" />
+                {/* Laptop abstract */}
+                <path d="M35,65 L65,65 L70,55" className="draw-path" />
+            </svg>
+        );
+
+        // --- ICONS (Standard UI) ---
+        const IconWrapper = ({ children, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
+        const Layout = (p) => <IconWrapper {...p}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></IconWrapper>;
+        const ArrowRight = (p) => <IconWrapper {...p}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconWrapper>;
+        const CheckCircle2 = (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></IconWrapper>;
+        const PlayCircle = (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></IconWrapper>;
+        const Search = (p) => <IconWrapper {...p}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></IconWrapper>;
+        const Bell = (p) => <IconWrapper {...p}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></IconWrapper>;
+        const Plus = (p) => <IconWrapper {...p}><path d="M5 12h14"/><path d="M12 5v14"/></IconWrapper>;
+        const Maximize2 = (p) => <IconWrapper {...p}><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></IconWrapper>;
+        const X = (p) => <IconWrapper {...p}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconWrapper>;
+        const Menu = (p) => <IconWrapper {...p}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></IconWrapper>;
+        const ChevronDown = (p) => <IconWrapper {...p}><path d="m6 9 6 6 6-6"/></IconWrapper>;
+        const Zap = (p) => <IconWrapper {...p}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></IconWrapper>;
+
+        // --- APP COMPONENT ---
+
+        const App = () => {
+            const [isScrolled, setIsScrolled] = useState(false);
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+            const [activeTask, setActiveTask] = useState(null);
+
+            useEffect(() => {
+                const handleScroll = () => setIsScrolled(window.scrollY > 20);
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            return (
+                <div className="min-h-screen bg-white text-slate-900 font-sans">
+                
+                {/* --- NAVIGATION --- */}
+                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-white/80 backdrop-blur-md border-slate-100 py-3' : 'bg-white border-transparent py-5'}`}>
+                    <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+                        <div className="flex items-center gap-2 group cursor-pointer">
+                            <div className="w-10 h-10 border-2 border-black rounded-lg flex items-center justify-center bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:translate-y-1 group-hover:shadow-none transition-all">
+                                <span className="font-black text-xl">S</span>
+                            </div>
+                            <span className="font-bold text-xl tracking-tight">SOLVO</span>
+                        </div>
+                        
+                        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+                            <a href="#" className="hover:text-black hover:underline decoration-wavy decoration-blue-500 underline-offset-4 transition-all">Product</a>
+                            <a href="#" className="hover:text-black hover:underline decoration-wavy decoration-purple-500 underline-offset-4 transition-all">Manifesto</a>
+                            <a href="#" className="hover:text-black hover:underline decoration-wavy decoration-yellow-500 underline-offset-4 transition-all">Pricing</a>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <button className="hidden sm:block text-sm font-bold hover:bg-slate-100 px-4 py-2 rounded-lg transition-colors">Log In</button>
+                            <button className="bg-black text-white text-sm font-bold px-6 py-2.5 rounded-lg border-2 border-black hover:bg-white hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
+                                Get Started
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+
+                {/* --- HERO SECTION --- */}
+                <section className="relative pt-40 pb-20 md:pt-52 md:pb-32 overflow-hidden">
+                    
+                    {/* Background Pattern - Dot Grid */}
+                    <div className="absolute inset-0 -z-10 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-50"></div>
+
+                    {/* Hand Drawn Decorations (The "Notion" Vibe) */}
+                    <div className="absolute top-40 left-10 md:left-40 hidden lg:block animate-fade-in-up">
+                        <StickFigureWorking className="w-32 h-32 text-slate-400 rotate-[-10deg]" />
+                        <div className="font-hand text-slate-500 text-xl mt-2 -rotate-12">Building...</div>
+                    </div>
+
+                    <div className="absolute top-48 right-10 md:right-40 hidden lg:block animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+                        <StarDoodle className="w-16 h-16 text-yellow-400 float" />
+                        <div className="font-hand text-slate-500 text-xl mt-4 rotate-12">Your Goal!</div>
+                        <ArrowDoodle className="w-24 h-24 text-slate-300 absolute -bottom-10 -left-10 rotate-180 scale-x-[-1]" />
+                    </div>
+
+                    <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
+                        <div className="inline-block mb-6 relative">
+                            <span className="font-bold text-sm tracking-widest uppercase text-slate-500">The Career Operating System</span>
+                            <UnderlineDoodle className="text-blue-500 w-full h-4 absolute -bottom-2 left-0" />
+                        </div>
+                        
+                        <h1 className="text-6xl md:text-8xl font-black text-slate-900 mb-8 leading-[0.9] tracking-tight">
+                            Organize your <br/>
+                            <span className="relative inline-block">
+                                Ambition.
+                                {/* Scribble behind text */}
+                                <svg className="absolute w-full h-full inset-0 -z-10 text-yellow-200" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <path d="M0,50 Q50,0 100,50 Q50,100 0,50" fill="currentColor" opacity="0.6" />
+                                </svg>
+                            </span>
+                        </h1>
+                        
+                        <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto mb-12 font-medium leading-relaxed">
+                            Stop getting lost in tutorials. SOLVO turns your career path into a <span className="font-hand text-3xl text-blue-600">living checklist</span> with live market data.
+                        </p>
+                        
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-24">
+                            <button className="px-8 py-4 bg-black text-white text-lg font-bold rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all flex items-center gap-2">
+                                Start Sketching Your Path <ArrowRight className="w-5 h-5" />
+                            </button>
+                            <div className="flex items-center gap-2 text-slate-500 font-medium cursor-pointer hover:text-black transition-colors">
+                                <PlayCircle className="w-6 h-6" />
+                                <span>See how it works</span>
+                            </div>
+                        </div>
+
+                        {/* --- THE PRODUCT DEMO (Sketchbook Style) --- */}
+                        <div className="relative mx-auto max-w-5xl">
+                            {/* Hand drawn note sticking out */}
+                            <div className="absolute -top-12 -left-12 z-20 hidden md:block">
+                                <div className="bg-yellow-100 text-yellow-800 p-4 rounded-tl-none rounded-br-2xl rounded-tr-xl rounded-bl-xl shadow-md rotate-[-6deg] font-hand text-xl max-w-[150px] border border-yellow-200">
+                                    "It's like Notion, but pre-filled!"
+                                </div>
+                            </div>
+
+                            {/* Main Window */}
+                            <div className="bg-white rounded-xl border-2 border-slate-900 shadow-[20px_20px_0px_0px_rgba(241,245,249,1)] overflow-hidden">
+                                {/* Window Header */}
+                                <div className="border-b-2 border-slate-100 bg-slate-50 h-12 flex items-center px-4 justify-between">
+                                    <div className="flex gap-2">
+                                        <div className="w-3 h-3 rounded-full border-2 border-slate-900 bg-white hover:bg-red-400 cursor-pointer"></div>
+                                        <div className="w-3 h-3 rounded-full border-2 border-slate-900 bg-white hover:bg-yellow-400 cursor-pointer"></div>
+                                        <div className="w-3 h-3 rounded-full border-2 border-slate-900 bg-white hover:bg-green-400 cursor-pointer"></div>
+                                    </div>
+                                    <div className="font-mono text-xs text-slate-400">solvo.os / dashboard</div>
+                                    <div className="w-16"></div> 
+                                </div>
+
+                                {/* App Interface */}
+                                <div className="flex h-[600px] text-left">
+                                    {/* Sidebar */}
+                                    <div className="w-64 border-r border-slate-100 bg-[#FAFAFA] p-6 hidden md:flex flex-col gap-6">
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Workspace</div>
+                                            <div className="space-y-1 font-medium text-slate-600">
+                                                <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-200 text-black">
+                                                    <span className="text-lg">🏠</span> Home
+                                                </div>
+                                                <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer">
+                                                    <span className="text-lg">🗺️</span> Roadmap
+                                                </div>
+                                                <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer">
+                                                    <span className="text-lg">📚</span> Library
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Your Lists</div>
+                                            <div className="space-y-1 font-medium text-slate-600">
+                                                <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer">
+                                                    <div className="w-2 h-2 rounded-full bg-red-500"></div> Urgent
+                                                </div>
+                                                <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer">
+                                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div> Learning
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="mt-auto pt-6 border-t border-slate-200">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold font-hand text-lg">Me</div>
+                                                <div className="text-sm font-bold">Alex Designer</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Main Content */}
+                                    <div className="flex-1 bg-white p-8 overflow-y-auto">
+                                        {/* Header */}
+                                        <div className="mb-10 relative">
+                                            {/* Doodle Annotation */}
+                                            <div className="absolute -right-4 top-0 hidden lg:block animate-fade-in-up">
+                                                <CircleDoodle className="w-32 h-16 text-red-500/50" />
+                                                <span className="absolute -bottom-6 right-0 font-hand text-red-500 rotate-[-5deg]">Almost there!</span>
+                                            </div>
+
+                                            <h2 className="text-4xl font-black mb-2 flex items-center gap-3">
+                                                Product Design Path
+                                                <span className="text-sm bg-slate-100 px-3 py-1 rounded-full border border-slate-200 text-slate-500 font-medium">85% Complete</span>
+                                            </h2>
+                                            <p className="text-slate-500">Focus for today: User Research & Prototyping</p>
+                                        </div>
+
+                                        {/* Board Columns */}
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            {/* Column 1: Todo */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded text-xs font-bold">TO DO</span>
+                                                        <span className="text-slate-400 text-xs">2</span>
+                                                    </div>
+                                                    <Plus className="w-4 h-4 text-slate-400 cursor-pointer hover:text-black" />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <div className="p-4 rounded-xl border-2 border-slate-100 hover:border-slate-300 transition-all cursor-pointer shadow-sm group hover:-translate-y-1 bg-white">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <span className="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-1 rounded">HIGH</span>
+                                                        </div>
+                                                        <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-blue-600">Conduct 5 User Interviews</h4>
+                                                        <p className="text-xs text-slate-400">Due Tomorrow</p>
+                                                    </div>
+                                                    <div className="p-4 rounded-xl border-2 border-slate-100 hover:border-slate-300 transition-all cursor-pointer shadow-sm group hover:-translate-y-1 bg-white">
+                                                        <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-blue-600">Read "The Design of Everyday Things"</h4>
+                                                        <p className="text-xs text-slate-400">Chapter 4-5</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Column 2: Doing */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">DOING</span>
+                                                        <span className="text-slate-400 text-xs">1</span>
+                                                    </div>
+                                                </div>
+                                                <div className="p-4 rounded-xl border-2 border-blue-500 bg-blue-50/20 cursor-pointer shadow-md relative">
+                                                    <div className="absolute -top-3 -right-3 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm animate-bounce">NOW</div>
+                                                    <div className="h-32 w-full bg-slate-200 rounded-lg mb-3 overflow-hidden relative group">
+                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors">
+                                                            <PlayCircle className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
+                                                        </div>
+                                                        {/* Mock Video Thumbnail */}
+                                                        <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">Figma 101</div>
+                                                    </div>
+                                                    <h4 className="font-bold text-slate-800 text-sm mb-1">Master Auto-Layout</h4>
+                                                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-3">
+                                                        <div className="bg-blue-500 h-full w-2/3"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Column 3: Done */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">DONE</span>
+                                                        <span className="text-slate-400 text-xs">5</span>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-3 opacity-60 hover:opacity-100 transition-opacity">
+                                                    <div className="p-4 rounded-xl border-2 border-slate-100 bg-slate-50 flex items-center gap-3">
+                                                        <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                                        <span className="text-sm font-medium text-slate-500 line-through">Setup Portfolio Site</span>
+                                                    </div>
+                                                    <div className="p-4 rounded-xl border-2 border-slate-100 bg-slate-50 flex items-center gap-3">
+                                                        <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                                                        <span className="text-sm font-medium text-slate-500 line-through">Color Theory Basics</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* --- FEATURES GRID (The "Details") --- */}
+                <section id="features" className="py-24 bg-slate-50 border-t border-slate-200">
+                    <div className="max-w-6xl mx-auto px-6">
+                        <div className="grid md:grid-cols-2 gap-16 items-center">
+                            <div>
+                                <div className="inline-block bg-white border border-slate-200 p-2 rounded-lg mb-6 shadow-sm rotate-3">
+                                    <div className="w-12 h-12 bg-blue-100 rounded flex items-center justify-center text-blue-600">
+                                        <Zap className="w-6 h-6" />
+                                    </div>
+                                </div>
+                                <h2 className="text-4xl font-bold text-slate-900 mb-6">Automated Workflows</h2>
+                                <p className="text-lg text-slate-600 leading-relaxed mb-8">
+                                    We don't just give you a list of links. SOLVO builds a 
+                                    <span className="font-hand text-2xl px-2 text-blue-600 relative">
+                                        custom curriculum
+                                        <UnderlineDoodle className="absolute left-0 bottom-0 w-full h-3 text-blue-300 opacity-50" />
+                                    </span> 
+                                    based on your specific gaps. It's like having a senior mentor managing your Jira board.
+                                </p>
+                                <ul className="space-y-4">
+                                    {['Live Market Sync', 'O*NET Integration', 'Personality Fit Check'].map((item, i) => (
+                                        <li key={i} className="flex items-center gap-3 font-medium text-slate-800">
+                                            <CheckCircle2 className="w-5 h-5 text-green-500" /> {item}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div className="relative">
+                                {/* Abstract Card Stack */}
+                                <div className="absolute top-0 right-0 w-64 h-80 bg-slate-200 rounded-3xl transform rotate-6"></div>
+                                <div className="absolute top-4 right-4 w-64 h-80 bg-slate-300 rounded-3xl transform rotate-3"></div>
+                                <div className="relative bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="font-bold text-lg">Market Trends</h3>
+                                        <span className="text-green-500 font-bold text-sm bg-green-50 px-2 py-1 rounded">+14% Growth</span>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="h-2 bg-slate-100 rounded-full w-full overflow-hidden">
+                                            <div className="h-full bg-slate-900 w-[80%]"></div>
+                                        </div>
+                                        <div className="h-2 bg-slate-100 rounded-full w-full overflow-hidden">
+                                            <div className="h-full bg-slate-900 w-[60%]"></div>
+                                        </div>
+                                        <div className="h-2 bg-slate-100 rounded-full w-full overflow-hidden">
+                                            <div className="h-full bg-slate-900 w-[90%]"></div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-8 pt-6 border-t border-slate-100">
+                                        <p className="text-sm text-slate-500 italic font-hand text-center">"UX Designers are in high demand in Fintech"</p>
+                                    </div>
+                                </div>
+                                {/* Floating Sticker */}
+                                <div className="absolute -bottom-6 -left-6 bg-yellow-400 text-black font-bold px-4 py-2 rounded-lg shadow-lg rotate-[-12deg] border-2 border-black">
+                                    Live Data!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* --- PRICING --- */}
+                <section id="pricing" className="py-24 bg-white">
+                    <div className="max-w-4xl mx-auto px-6 text-center">
+                        <h2 className="text-4xl font-bold mb-4">One Simple Price</h2>
+                        <p className="text-slate-500 mb-12">Cheaper than one month of Netflix.</p>
+                        
+                        <div className="grid md:grid-cols-2 gap-8 text-left">
+                            <div className="p-8 rounded-3xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-colors">
+                                <span className="font-mono text-xs font-bold text-slate-400 uppercase">Hobby</span>
+                                <div className="text-4xl font-black mt-2 mb-6">$0</div>
+                                <ul className="space-y-3 mb-8 text-sm text-slate-600">
+                                    <li>• Basic Psychometric Test</li>
+                                    <li>• 1 Career Roadmap</li>
+                                    <li>• Public Resource Library</li>
+                                </ul>
+                                <button className="w-full py-3 font-bold border-2 border-black rounded-xl hover:bg-slate-100 transition-colors">Start Free</button>
+                            </div>
+                            
+                            <div className="p-8 rounded-3xl bg-black text-white relative overflow-hidden shadow-2xl transform hover:-translate-y-1 transition-transform">
+                                <div className="absolute top-0 right-0 bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase">Best Value</div>
+                                <span className="font-mono text-xs font-bold text-gray-400 uppercase">Pro Access</span>
+                                <div className="text-4xl font-black mt-2 mb-6">$12 <span className="text-lg font-medium text-gray-500">/ once</span></div>
+                                <ul className="space-y-3 mb-8 text-sm text-gray-300">
+                                    <li>• Full Personality Report</li>
+                                    <li>• <b>Unlimited</b> AI Roadmaps</li>
+                                    <li>• Automated Kanban Dashboard</li>
+                                    <li>• Live Market Data Sync</li>
+                                </ul>
+                                <button className="w-full py-3 font-bold bg-white text-black rounded-xl hover:bg-gray-200 transition-colors">Get Lifetime Access</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* --- FOOTER --- */}
+                <footer className="py-12 border-t border-slate-100 text-center">
+                    <div className="font-black text-xl mb-4">SOLVO</div>
+                    <div className="text-sm text-slate-500 font-medium">
+                        &copy; 2024 SOLVO Systems. <span className="font-hand text-lg ml-2">Built for builders.</span>
+                    </div>
+                </footer>
+
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
